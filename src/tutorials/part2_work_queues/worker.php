@@ -2,7 +2,7 @@
 /**
  * Work Queue(Task Queue) worker
  *
- * 複数起動させておくと、ラウンドロビンで処理される。
+ * 複数起動させておくと、空いているworkerに振られる
  */
 require_once __DIR__ . '/../../vendor/autoload.php';
 
@@ -23,9 +23,10 @@ $callback = function (AMQPMessage $msg) {
 $con = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
 $channel = $con->channel();
 // 名前付きqueueの指定、なければ作成
-$channel->queue_declare('hello');
-
-$channel->basic_consume('hello', '', false, false, false, false, $callback);
+$channel->queue_declare('task01');
+// busyなworkerには送信しないように
+$channel->basic_qos(null, 1, null);
+$channel->basic_consume('task01', '', false, false, false, false, $callback);
 
 // 受信待ち受け
 echo " [*] Waiting for messages. To exit press CTRL+C\n";
