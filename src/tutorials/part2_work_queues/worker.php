@@ -15,6 +15,8 @@ $callback = function (AMQPMessage $msg) {
     // 時間のかかる処理のシミュレーションとして、'.' 出現数 * 1秒 待つ
     sleep(substr_count($msg->body, '.'));
     echo " [x] Done", "\n";
+    // ACKを送る
+    $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
 };
 
 // 接続

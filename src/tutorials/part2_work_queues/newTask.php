@@ -13,18 +13,17 @@ use PhpAmqpLib\Message\AMQPMessage;
 
 // 接続
 $con = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
-
-// 名前付きqueueの指定、なければ作成
 $channel = $con->channel();
-$channel->queue_declare('hello');
+// durable=true (MQサーバが停止してもメッセージが失われないqueue)
+$channel->queue_declare('task01', false, true);
 
 // メッセージを作り、送る
 $data = implode(' ', array_slice($argv, 1));
 if (empty($data)) {
     $data = "Hello World!";
 }
-$msg = new AMQPMessage($data);
-$channel->basic_publish($msg, '', 'hello');
+$msg = new AMQPMessage($data, ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]);
+$channel->basic_publish($msg, '', 'task01');
 
 echo " [x] Sent ${data}\n";
 
